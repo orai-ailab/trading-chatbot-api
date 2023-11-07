@@ -1,4 +1,7 @@
 import requests
+import os
+
+CENTIC_JWT_TOKEN = os.getenv("CENTIC_JWT_TOKEN")
 
 def top_n_asset_performance(num_asset:int, criteria:str, interval:int):
     r"""
