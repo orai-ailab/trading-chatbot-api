@@ -38,3 +38,23 @@ def top_n_asset_performance(num_asset:int, criteria:str, interval:int):
 
     return asset_list
 
+import requests
+
+def coin_history(coin_id: str, currency: str, day: int):
+    """
+    Purpose: Retrieve historical prices of a cryptocurrency through the CoinGecko API
+    Input:
+        coin_id: Symbol of the cryptocurrency
+        currency: The currency for the price (e.g., usd, vnd)
+        day: Number of days of historical data(2-90)
+    Output:
+        Returns historical prices for the specified cryptocurrency or raises an exception on error
+    """
+    coin_API = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart?vs_currency={currency}&days={day}&interval=daily"
+    response = requests.get(coin_API)
+    
+    if response.status_code == 200:
+        data = response.json()
+        return data
+    else:
+        raise Exception(f"Failed to fetch data. Status code: {response.status_code}")
