@@ -1,5 +1,6 @@
 import requests
 import os
+from datetime import datetime, timedelta
 import time
 import json
 CENTIC_JWT_TOKEN = os.getenv("CENTIC_JWT_TOKEN")
@@ -142,3 +143,42 @@ def performance_portfolio(wallet_id: str, interval: int):
         if time_date >= end_date:
             values_in_range[time] = data_point
     return json.dumps(values_in_range, indent=2)
+
+
+def portfolio_wallet(wallet_id: str, chainid: str):
+    """
+    Intent: ask_onchain/portfolio_wallet
+    Query wallet overview data for a specific wallet on a given chain.
+
+    Inputs:
+        wallet_id: A string representing the wallet address to query.
+        chainid: A string representing the chain ID for which the wallet overview is requested.
+
+    Outputs:
+        A JSON-formatted string containing wallet overview data.
+        If there's an issue with the request or response, it returns None.
+    """
+    
+    # Kiểm tra xem wallet_id và chainid có phải là chuỗi không
+    if not isinstance(wallet_id, str) or not isinstance(chainid, str):
+        raise ValueError("Invalid wallet address or chain ID.")
+
+    overview_API = f"https://api-staging.centic.io/dev/v3/wallets/{wallet_id}/overview?chain={chainid}"
+    
+    response = requests.get(overview_API)
+    
+    if response.status_code == 200:
+        data = response.json()
+        tokens = data['tokens']
+        nfts = data["nfts"]
+        dapps = data["dapps"]
+        lastUpdatedAt = data["lastUpdatedAt"]
+        result = {
+            "tokens": tokens,
+            "nfts": nfts,
+            "dapps": dapps,
+            "lastUpdatedAt": lastUpdatedAt
+        }
+        return json.dumps(result, indent=2)
+    else:
+        return None
