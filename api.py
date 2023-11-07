@@ -7,15 +7,19 @@ def top_n_asset_performance(num_asset:int, criteria:str, interval:int):
     r"""
     Intent: ask_onchain/top_n_asset_performance
     Query top num_asset of tokens based on criteria over interval
+    Input:
+        num_asset
+        criteria: in ["marketCap", "tradingVolume", "tokenHealth", "tradingVolumeChangeRate"]
+        interval: by days
     Output:
-    Everything is obvious except:
-    "asset": Key: UNIX timestamp according to the interval specification, Value: total amount of tokens hold as asset (in wallets across all chains supported).
+        Everything is obvious except:
+        "asset": Key: UNIX timestamp according to the interval specification, Value: total amount of tokens hold as asset (in wallets across all chains supported).
 
-    "performance": Key, same as above, Value: percentage of total value increase/decrease w.r.t to the previous timestamp 
-    "dailyPAndL": Key, same as above, Value: Profit/Loss based on market price at the time, w.r.t to the previous timestamp
-    "cumulativePAndL": ...
-    "greatEvents": array of this token transfer of significant amount
-    "exchanges": arrray of this token amount over different exchanges
+        "performance": Key, same as above, Value: percentage of total value increase/decrease w.r.t to the previous timestamp 
+        "dailyPAndL": Key, same as above, Value: Profit/Loss based on market price at the time, w.r.t to the previous timestamp
+        "cumulativePAndL": ...
+        "greatEvents": array of this token transfer of significant amount
+        "exchanges": arrray of this token amount over different exchanges
     """
 
     if criteria in ["marketCap", "tradingVolume", "tokenHealth", "tradingVolumeChangeRate"]:
