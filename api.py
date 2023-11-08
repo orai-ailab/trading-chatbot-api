@@ -63,7 +63,6 @@ def portfolio_asset(wallet_address: str, interval: int):
     else:
         return None
 
-    current_time = str(int(time.time()))
     assets = data["assets"]
     fields_to_move = {
         "totalAssets": assets["totalAssets"],
@@ -79,12 +78,23 @@ def portfolio_asset(wallet_address: str, interval: int):
     data["assets"]["assetsHistory"][current_time] = fields_to_move
     for field in fields_to_move:
         del data["assets"][field]
-    
-    return data["assets"]["assetsHistory"]
+    timestamps_to_change = list(data["assets"]["assetsHistory"].keys())
+    for timestamp in timestamps_to_change:
+        time = datetime.fromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
+        if timestamp in data["assets"]["assetsHistory"]:
+         time = datetime.fromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
+         data["assets"]["assetsHistory"][time] = data["assets"]["assetsHistory"].pop(timestamp)
+    end_date = datetime.now() - timedelta(days=interval + 1)
+    values_in_range = {}
+    for time, data_point in data["assets"]["assetsHistory"].items():
+        time_date = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
+        if time_date >= end_date:
+            values_in_range[time] = data_point
+    return json.dumps(values_in_range, indent=2)
 
 def portfolio_performance(wallet_address: str, interval: int):
     """
-    Intent: ask_onchain/performance_portfolio
+    Intent: ask_onchain/portfolio_performance
     Query credit score history for a specific wallet over a defined interval.
     
     Inputs:
@@ -124,11 +134,6 @@ def portfolio_wallet(wallet_address: str, chainid: str):
         A JSON-formatted string containing wallet overview data.
         If there's an issue with the request or response, it returns None.
     """
-    
-    # Kiểm tra xem wallet_address và chainid có phải là chuỗi không
-    if not isinstance(wallet_address, str) or not isinstance(chainid, str):
-        raise ValueError("Invalid wallet address or chain ID.")
-
     overview_API = f"https://api-staging.centic.io/dev/v3/wallets/{wallet_id}/overview?chain={chainid}"
     
     response = requests.get(overview_API)
@@ -176,23 +181,5 @@ def get_coin_history(coin_name: str, currency: str, day: int):
     else:
         raise Exception(f"Failed to fetch data. Status code: {response.status_code}")
 
-def map_coin_id(coin_name: str):
-    """
-    Purpose: Map a cryptocurrency's name to its unique identifier (coin_id) using the CoinGecko API.
-    Input:
-        coin_name: Name of the cryptocurrency
-    Output:
-        Returns the coin_id if the cryptocurrency is found in the CoinGecko database, or "Not Found Coin" if not found.
-    """
-    # Construct the API URL to fetch the list of cryptocurrencies
-    list_coin_api = "https://api.coingecko.com/api/v3/coins/list"
-    # Send a GET request to the CoinGecko API and parse the response as JSON
-    list_coin = requests.get(list_coin_api).json()
-    # Iterate through the list of cryptocurrencies to find a match based on name
-    for coin_data in list_coin:
-        if coin_data['name'].lower() == coin_name.lower():
-            return coin_data['id']
-    # Return "Not Found Coin" if the cryptocurrency is not in the database
-    return "Not Found Coin"
 
 
