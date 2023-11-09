@@ -1,28 +1,18 @@
-import json
-from collections import defaultdict, OrderedDict
-
-# Đọc dữ liệu từ file JSON
-with open('nhatot.json', 'r', encoding='utf-8') as f:
-    data = json.load(f)
-
-# Tạo một defaultdict để nhóm dữ liệu
-grouped_data = defaultdict(list)
-
-# Nhóm dữ liệu
-for item in data:
-    region = item.get('region')
-    if region is not None:
-        grouped_data[region].append(item)
-
-# Sắp xếp dữ liệu theo khóa "region"
-sorted_grouped_data = OrderedDict(sorted(grouped_data.items()))
-
-# Chuyển OrderedDict thành dict thông thường
-sorted_grouped_data = dict(sorted_grouped_data)
-
-# Xuất dữ liệu đã nhóm và đã sắp xếp vào một file JSON khác nếu cần
-with open('sorted_grouped_data.json', 'w', encoding='utf-8') as f:
-    json.dump(sorted_grouped_data, f, indent=4, ensure_ascii=False)
-
-# Hoặc in ra màn hình để kiểm tra
-
+def map_coin_id(coin_name: str):
+    """
+    Purpose: Map a cryptocurrency's name to its unique identifier (coin_id) using the CoinGecko API.
+    Input:
+        coin_name: Name of the cryptocurrency
+    Output:
+        Returns the coin_id if the cryptocurrency is found in the CoinGecko database, or "Not Found Coin" if not found.
+    """
+    # Construct the API URL to fetch the list of cryptocurrencies
+    list_coin_api = "https://api.coingecko.com/api/v3/coins/list"
+    # Send a GET request to the CoinGecko API and parse the response as JSON
+    list_coin = requests.get(list_coin_api).json()
+    # Iterate through the list of cryptocurrencies to find a match based on name
+    for coin_data in list_coin:
+        if coin_data['name'].lower() == coin_name.lower():
+            return coin_data['id']
+    # Return "Not Found Coin" if the cryptocurrency is not in the database
+    return "Not Found Coin"
