@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timedelta
 import time
 import json
+import help
 CENTIC_JWT_TOKEN = os.getenv("CENTIC_JWT_TOKEN")
 
 def top_n_asset_performance(num_asset:int, criteria:str, interval:int):
@@ -166,7 +167,7 @@ def get_coin_history(coin_name: str, currency: str, day: int):
         Returns historical prices for the specified cryptocurrency or raises an exception on error
     """
     # First, map the coin name to coin_id using the map_coin_id function
-    coin_id = map_coin_id(coin_name)
+    coin_id = help.map_coin_id(coin_name)
     
     if coin_id == "Not Found Coin":
         raise Exception(f"Coin with name '{coin_name}' not found")
