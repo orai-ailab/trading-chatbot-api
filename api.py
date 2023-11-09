@@ -93,26 +93,31 @@ def portfolio_asset(wallet_address: str, interval: int):
             values_in_range[time] = data_point
     return json.dumps(values_in_range, indent=2)
 
-def portfolio_performance(wallet_address: str, interval: int):
+
+def portfolio_performance(wallet_id: str, interval: int):
     """
-    Intent: ask_onchain/portfolio_performance
+    Intent: ask_onchain/
     Query credit score history for a specific wallet over a defined interval.
     
     Inputs:
-        wallet_address: A string representing the wallet address to query.
+        wallet_id: A string representing the wallet address to query.
         interval: An integer representing the interval in days.
 
     Outputs:
         A JSON-formatted string containing the credit score history for the specified wallet
         within the specified time interval.
     """
-    wallet_url_api = f'https://api-staging.centic.io/dev/v3/credit-score/{wallet_address}/history'
+    if not isinstance(wallet_id, str):
+        return "Invalid wallet address."
+
+    elif not isinstance(interval, int) or interval < 0:
+        return "Invalid Interval"
+    wallet_url_api = f'https://api-staging.centic.io/dev/v3/credit-score/{wallet_id}/history'
     wallet_score_history = requests.get(wallet_url_api).json()
     timestamps_to_change = list(wallet_score_history["creditScoreHistory"].keys())
     for timestamp in timestamps_to_change:
         time = datetime.fromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
-        wallet_score_history["creditScoreHistory"][time] = wallet_score_history["creditScoreHistory"].pop(timestamp
-    
+        wallet_score_history["creditScoreHistory"][time] = wallet_score_history["creditScoreHistory"].pop(timestamp)
     end_date = datetime.now() - timedelta(days=interval + 1)
     values_in_range = {}
     for time, data_point in wallet_score_history["creditScoreHistory"].items():
