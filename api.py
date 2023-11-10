@@ -40,9 +40,7 @@ def top_n_asset_performance(num_asset:int, criteria:str, interval:int):
         asset_list[i].update(asset_analytics)
 
     return asset_list
-
-
-def portfolio_asset(wallet_address: str, interval: int):
+def portfolio_asset(wallet_address: str, interval: int, chain_name : str):
     """
     Intent: ask_onchain/portfolio_asset
     Query and update the asset portfolio summary for a specific wallet.
@@ -50,52 +48,29 @@ def portfolio_asset(wallet_address: str, interval: int):
     Inputs:
         wallet_address: A string representing the wallet address to query.
         interval: An integer representing the interval in days.
+        chain_name :  A string representing   chain name  of the wallet address
 
     Outputs:
         A dictionary containing the updated asset portfolio history of the specified wallet.
         If there's an issue with the request or response, it returns None.
     """
     summary_asset_wallet_API = f"https://api-staging.centic.io/dev/v3/credit-score/{wallet_address}/detail"
-    
     response = requests.get(summary_asset_wallet_API)
     
     if response.status_code == 200:
         data = response.json()
     else:
-        error_message = {
-            "error": "Failed to retrieve data",
-            "status_code": response.status_code
+        return None
+
+    # Process assets data
+    values_in_range1 = helper.process_data(data, ["assets", "assetsHistory"], interval)
+    values_in_range2 = helper.process_data(data, ["transactions", "dailyTransactions"], interval)
+    wallet_info = portfolio_wallet(wallet_address,chain_name)
+    asset_adress = {
+            "asset_info": data,
+            "wallet_info": wallet_info
         }
-        return json.dumps(error_message)
-    current_time = datetime.now().timestamp()
-    assets = data["assets"]
-    fields_to_move = {
-        "totalAssets": assets["totalAssets"],
-        "avgTotalAssets": assets["avgTotalAssets"],
-        "totalBalance": assets["totalBalance"],
-        "avgTotalBalance": assets["avgTotalBalance"],
-        "totalDeposit": assets["totalDeposit"],
-        "investmentRatio": assets["investmentRatio"],
-        "totalBorrow": assets["totalBorrow"],
-        "loanRatio": assets["loanRatio"]
-    }
-    
-    data["assets"]["assetsHistory"][current_time] = fields_to_move
-    for field in fields_to_move:
-        del data["assets"][field]
-    timestamps_to_change = list(data["assets"]["assetsHistory"].keys())
-    for timestamp in timestamps_to_change:
-        time = datetime.fromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
-        if timestamp in data["assets"]["assetsHistory"]:
-         time = datetime.fromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
-         data["assets"]["assetsHistory"][time] = data["assets"]["assetsHistory"].pop(timestamp)
-    end_date = datetime.now() - timedelta(days=interval + 1)
-    values_in_range = {}
-    for time, data_point in data["assets"]["assetsHistory"].items():
-        time_date = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
-        if time_date >= end_date:
-            values_in_range[time] = data_point
-    return json.dumps(values_in_range, indent=2)
+    return asset_adress
 
 
 def portfolio_performance(wallet_id: str, interval: int):
@@ -111,11 +86,6 @@ def portfolio_performance(wallet_id: str, interval: int):
         A JSON-formatted string containing the credit score history for the specified wallet
         within the specified time interval.
     """
-    if not isinstance(wallet_id, str):
-        return "Invalid wallet address."
-
-    elif not isinstance(interval, int) or interval < 0:
-        return "Invalid Interval"
     wallet_url_api = f'https://api-staging.centic.io/dev/v3/credit-score/{wallet_id}/history'
     wallet_score_history = requests.get(wallet_url_api).json()
     timestamps_to_change = list(wallet_score_history["creditScoreHistory"].keys())
